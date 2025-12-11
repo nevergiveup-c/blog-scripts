@@ -1,4 +1,19 @@
-import struct, lief, sys, re
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# please, check out README.md before using this
+
+import argparse, struct, lief, sys
 
 from capstone import Cs, CS_ARCH_X86, CS_MODE_32
 
@@ -47,12 +62,11 @@ def ParseNext(data: bytes, pe, cs, start_offset: int):
         try:
             # Disassemble one instruction at current offset
             code = data[array_offset:array_offset + 15]  # Max x86 instruction is 15 bytes
-            insns = list(cs.disasm(code, array_offset, 1))
-            if not insns:
+            insn = next(cs.disasm(code, array_offset, 1), None)
+            if not insn:
                 array_offset += 1
                 continue
 
-            insn = insns[0]
             insn_len = insn.size
             insn_mnemonic = insn.mnemonic.upper()
 
@@ -143,12 +157,12 @@ def ExtractAllConfigs(data: bytes, pe, cs):
     return results
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python script.py <memory_dump>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('<memory_dump>', help='Path to memory dump file')
+    args = parser.parse_args()
 
     try:
-        with open(sys.argv[1], 'rb') as f:
+        with open(args.dump, 'rb') as f:
             data = f.read()
     except Exception as e:
         print(f"[-] Error reading file: {e}")
