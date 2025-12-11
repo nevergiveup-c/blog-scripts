@@ -158,7 +158,7 @@ def ExtractAllConfigs(data: bytes, pe, cs):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('<memory_dump>', help='Path to memory dump file')
+    parser.add_argument('dump', help='Path to memory dump file')
     args = parser.parse_args()
 
     try:
